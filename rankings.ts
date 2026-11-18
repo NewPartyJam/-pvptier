@@ -8,20 +8,17 @@
  */
 
 export const SITE = {
-  name: '鋼PvP',
-  romaji: 'Hagane PvP',
-  serverIp: 'play.hagane-pvp.jp',
-  discordUrl: 'https://discord.com',
+  name: 'かろPVP',
+  romaji: 'KaroPvP',
+  serverIp: 'play.karon.jp',
+  discordUrl: 'https://discord.gg/karoasu-bu-an-ding-1142835701977731102',
 } as const
 
 export type ModeId =
   | 'sword'
-  | 'axe'
   | 'mace'
   | 'netherite'
-  | 'uhc'
   | 'pot'
-  | 'smp'
   | 'crystal'
   | 'spear'
 
@@ -29,12 +26,9 @@ export type Mode = { id: ModeId; name: string; jp: string }
 
 export const MODES: Mode[] = [
   { id: 'sword', name: 'Sword', jp: '剣' },
-  { id: 'axe', name: 'Axe', jp: '斧' },
   { id: 'mace', name: 'Mace', jp: 'メイス' },
   { id: 'netherite', name: 'Neth OP', jp: 'ネザライト' },
-  { id: 'uhc', name: 'UHC', jp: 'UHC' },
   { id: 'pot', name: 'Pot', jp: 'ポーション' },
-  { id: 'smp', name: 'SMP', jp: 'SMP' },
   { id: 'crystal', name: 'Crystal', jp: 'クリスタル' },
   { id: 'spear', name: 'Spear', jp: 'スピア' },
 ]
@@ -117,66 +111,15 @@ export function ffaTier(kills: number): TierCode {
 }
 
 const NAMES = [
-  'Kurogane_',
-  'yuzuSlash',
-  'TofuStrike',
-  'nekoKnight',
-  'Hayate0817',
-  'mochiCrit',
-  'Raijin_PvP',
-  'sakuraW_tap',
-  'ShiroKuma',
-  'kitsune2k',
-  'GinTsuki',
-  'umeBoshi',
-  'Akatsuki_XO',
-  'tanukiTime',
-  'KazeNoKo',
-  'ramenRush',
-  'Tsubasa_v',
-  'mikanStrafe',
-  'KoiFishy',
-  'Inazuma',
-  'daifukuPot',
-  'senpaiCombo',
-  'Hotaru_mc',
-  'oniGiriGG',
-  'YamaArashi',
-  'sushiBlock',
-  'KageMaru',
-  'matchaJitter',
-  'Ryusei',
-  'udonUHC',
-  'HibikiTap',
-  'kaminariOP',
-  'Sora_Crit',
-  'warabiMochi',
-  'TenguBlade',
-  'kuroNeko_jp',
-  'MizuReach',
-  'dangoDuel',
-  'Haru_spear',
-  'IceKirin',
-  'natsuMace',
-  'yokaiPearl',
-  'Shizuku_',
-  'TakoStrafe',
-  'Ren_crystal',
-  'momijiWave',
-  'Fubuki_x',
-  'enokiSMP',
-  'Tatsuya_',
-  'kibouAxe',
-  'Nagi_0',
-  'hanabiCrit',
-  'SengokuPvP',
-  'aoiRod',
-  'Kaito_tap',
-  'yurei_mc',
-  'Mitsuki',
-  'kareeRice',
-  'ShinobiS',
-  'takoyakiOP',
+  'SwettyMC',
+  'eagz2035',
+  'menmen110',
+  'Hruka657',
+  'yvvulo',
+  'Yonegon7',
+  'Tempest5656',
+  'levelJP5087',
+  'Bid Side7778',
 ]
 
 const REGIONS: Player['region'][] = ['JP', 'JP', 'JP', 'JP', 'KR', 'TW', 'AS']
@@ -192,7 +135,23 @@ function mulberry32(seed: number) {
   }
 }
 
-function buildPlayers(): Player[] {
+function buildPlayers(const CUSTOM_TIERS: Partial<Record<string, Partial<Record<ModeId, TierCode>>>> = {
+  SwettyMC: {
+    sword: 'HT1',
+    netherite: 'LT2',
+    pot: 'HT3',
+    crystal: 'HT3',
+    spear: 'LT3',
+  },
+
+  eagz2035: {
+    sword: 'LT2',
+    netherite: 'LT1',
+    pot: 'LT1',
+    crystal: 'HT1',
+  },
+    
+}): Player[] {
   const rand = mulberry32(20261118)
   const players = NAMES.map((name, index) => {
     // Earlier names skew stronger so the leaderboard has a clear top.
@@ -202,7 +161,8 @@ function buildPlayers(): Player[] {
     for (const mode of MODES) {
       if (rand() > 0.35 + skill * 0.6) continue
       const roll = Math.min(0.999, Math.max(0, (1 - skill) * 0.85 + rand() * 0.45))
-      const tier = TIER_CODES[Math.floor(roll * TIER_CODES.length)]
+　　　　const tier = CUSTOM_TIERS[name]?.[mode.id]
+        ?? TIER_CODES[Math.floor(roll * TIER_CODES.length)]
       const wins = Math.round(8 + rand() * 120 * (skill + 0.2))
       const losses = Math.round(1 + rand() * 30 * (1.2 - skill))
       matches += wins + losses
