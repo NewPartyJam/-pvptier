@@ -11,10 +11,10 @@
  */
 
 export const SITE = {
-  name: '鋼PvP',
-  romaji: 'Hagane PvP',
-  serverIp: 'play.hagane-pvp.jp',
-  discordUrl: 'https://discord.com',
+ name: 'かろEarth PvP',
+  romaji: 'KaroPvP',
+  serverIp: 'play.karon.jp',
+  discordUrl: 'https://discord.gg/karoasu-bu-an-ding-1142835701977731102',
 } as const
 
 export type ModeId = 'sword' | 'mace' | 'netherite' | 'pot' | 'crystal' | 'spear'
