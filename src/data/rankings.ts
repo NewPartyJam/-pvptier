@@ -127,7 +127,7 @@ const PLAYER_INPUTS: PlayerInput[] = [
       crystal: t('HT3'),
       spear: t('LT3'),
     },
-    ffa: { kills: 850, level: 9 }, // LT1
+    ffa: { kills: 1091, level: 9 }, // LT1
   },
   {
     name: 'eagz2035',
@@ -139,7 +139,7 @@ const PLAYER_INPUTS: PlayerInput[] = [
       pot: t('LT1'),
       crystal: t('HT1'),
     },
-    ffa: { kills: 1100, level: 10 }, // HT1
+    ffa: { kills: 954, level: 10 }, // HT1
   },
   {
     name: 'menmen110',
@@ -153,7 +153,7 @@ const PLAYER_INPUTS: PlayerInput[] = [
       crystal: t('LT2'),
       spear: t('LT2'),
     },
-    ffa: { kills: 820, level: 9 }, // LT1
+    ffa: { kills: 1006, level: 9 }, // LT1
   },
   {
     name: 'Hruka657',
@@ -164,7 +164,7 @@ const PLAYER_INPUTS: PlayerInput[] = [
       netherite: t('HT4'),
       pot: t('LT4'),
     },
-    ffa: { kills: 320, level: 5 }, // LT3
+    ffa: { kills: 458, level: 5 }, // LT3
   },
   {
     name: 'yvvulo', // ※ティア表では「Namq4」と書かれていた人
@@ -176,7 +176,7 @@ const PLAYER_INPUTS: PlayerInput[] = [
       netherite: t('LT1'),
       pot: t('HT1'),
     },
-    ffa: { kills: 650, level: 8 }, // HT2
+    ffa: { kills: 897, level: 8 }, // HT2
   },
   {
     name: 'Yonegon7',
@@ -187,10 +187,10 @@ const PLAYER_INPUTS: PlayerInput[] = [
       mace: t('HT1'),
       netherite: t('HT3'),
       pot: t('LT3'),
-      crystal: t('LT1'),
+      crystal: t('HT2'),
       spear: t('LT2'),
     },
-    ffa: { kills: 520, level: 7 }, // LT2
+    ffa: { kills: 587, level: 7 }, // LT2
   },
   {
     name: 'Tempest5656',
@@ -202,7 +202,7 @@ const PLAYER_INPUTS: PlayerInput[] = [
       pot: t('HT3'),
       crystal: t('HT3'),
     },
-    ffa: { kills: 540, level: 7 }, // LT2
+    ffa: { kills: 101, level: 7 }, // LT2
   },
   {
     name: 'levelJP5087',
@@ -214,10 +214,10 @@ const PLAYER_INPUTS: PlayerInput[] = [
       pot: t('HT4'),
       spear: t('LT3'),
     },
-    ffa: { kills: 230, level: 4 }, // HT4
+    ffa: { kills: 98, level: 4 }, // HT4
   },
   {
-    name: 'Bid Side7778',
+    name: 'Bid Side 7778',
     region: 'JP',
     overall: 'LT3',
     tiers: {
@@ -226,10 +226,106 @@ const PLAYER_INPUTS: PlayerInput[] = [
       pot: t('LT4'),
       spear: t('LT4'),
     },
-    ffa: { kills: 210, level: 4 }, // HT4
+    ffa: { kills: 77, level: 4 }, // HT4
   },
-  // ティア情報がまだ無いので保留。データが決まったら追加してください。
-  // { name: 'LEMONZZKIRBY', region: 'JP', overall: 'LT5', tiers: {}, ffa: { kills: 0, level: 1 } },
+  {
+    name: 'LEMONZZKIRBY',
+    region: 'JP',
+    overall: 'HT3',
+    tiers: {
+      sword: t('HT3'),
+      netherite: t('LT3'),
+      pot: t('HT3'),
+      crystal: t('LT1'),
+    },
+    ffa: { kills: 191, level: 7 }, // LT2
+  },
+   {
+    name: 'Touyu 893',
+    region: 'JP',
+    overall: 'HT4',
+    tiers: {
+      sword: t('LT4'),
+      netherite: t('HT4'),
+      pot: t('LT4'),
+      crystal: t('LT3'),
+    },
+    ffa: { kills: 209, level: 5 }, // LT3
+  },
+   {
+    name: 'LiruJP',
+    region: 'JP',
+    overall: 'HT3',
+    tiers: {
+      sword: t('HT3'),
+      mace: t('LT2'),
+      netherite: t('HT3'),
+      pot: t('LT2'),
+      crystal: t('LT2'),
+      spear: t('LT3'),
+    },
+    ffa: { kills: 372, level: 6 }, // HT3
+  },
+   {
+    name: 'koadesu14',
+    region: 'JP',
+    overall: 'LT4',
+    tiers: {
+      sword: t('LT4'),
+      netherite: t('HT5'),
+      pot: t('LT4'),
+      crystal: t('LT4'),
+    },
+    ffa: { kills: 341, level: 5 }, // LT3
+  },
+   {
+    name: 'DebileCorgi3013',
+    region: 'JP',
+    overall: 'LT1',
+    tiers: {
+      sword: t('LT1'),
+      netherite: t('HT1'),
+      pot: t('LT1'),
+    },
+    ffa: { kills: 22, level: 5 }, // LT3
+  },
+   {
+    name: 'Yukichi0511',
+    region: 'JP',
+    overall: 'LT5',
+    tiers: {
+      sword: t('HT5'),
+      mace: t('LT5'),
+      netherite: t('LT5'),
+      pot: t('LT5'),
+      spear: t('LT5'),
+    },
+    ffa: { kills: 6, level: 1 }, // LT5
+  },
+   {
+    name: 'tenhori',
+    region: 'JP',
+    overall: 'LT1',
+    tiers: {
+      sword: t('HT1'),
+      mace: t('HT2'),
+      netherite: t('LT1'),
+      pot: t('HT2'),
+      crystal: t('HT3'),
+    },
+    ffa: { kills: 0, level: 1 }, // LT5
+  },
+   {
+     name: 'sitoSAB',
+    region: 'JP',
+    overall: 'HT2',
+    tiers: {
+      sword: t('HT1'),
+      netherite: t('HT2'),
+      pot: t('HT2'),
+    },
+    ffa: { kills: 0, level: 5 }, // LT3
+  },
 ]
 
 function buildPlayers(): Player[] {
