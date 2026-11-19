@@ -123,7 +123,7 @@ const PLAYER_INPUTS: PlayerInput[] = [
     tiers: {
       sword: t('HT1'),
       netherite: t('HT2'),
-      pot: t('HT3'),
+      pot: t('LT2'),
       crystal: t('HT3'),
       spear: t('LT3'),
     },
@@ -260,7 +260,7 @@ const PLAYER_INPUTS: PlayerInput[] = [
       sword: t('HT3'),
       mace: t('LT2'),
       netherite: t('HT3'),
-      pot: t('LT2'),
+      pot: t('HT2'),
       crystal: t('LT2'),
       spear: t('LT3'),
     },
@@ -284,8 +284,8 @@ const PLAYER_INPUTS: PlayerInput[] = [
     overall: 'LT1',
     tiers: {
       sword: t('LT1'),
-      netherite: t('LT1'),
-      pot: t('LT1'),
+      netherite: t('HT2'),
+      pot: t('HT2'),
     },
     ffa: { kills: 22, level: 5 }, // LT3
   },
