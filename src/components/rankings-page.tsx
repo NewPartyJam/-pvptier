@@ -65,7 +65,7 @@ export function RankingsPage({ category }: { category: Category }) {
           総合ランキングは、総合ティアの高い順（同ティアはティアポイントの合計順）に並びます。各モードではHT1からLT5までのティアでプレイヤーを掲載しています。
         </p>
         <p>
-          FFAは総キル数またはFFAティアの上位10名を表示します。FFAティアは1〜10の数値で指定します（1 = LT5、9 = LT1、10 = HT1）。
+          FFAは総侵略数及びFFAティアの上位10名を表示します。FFAは戦争時においての雑魚殲滅力、多数対多数、一対多数などの総合的な戦争経験能力を指します。FFAティアは1〜10の数値で指定します（1 = LT5、9 = LT1、10 = HT1）。
         </p>
         <ul className="hg-points">
           {Object.entries(TIER_POINTS).map(([tier, pts]) => (
@@ -217,7 +217,7 @@ function categoryCount(category: Category): string {
   const players = getRankings()
   if (category === 'overall') return `${players.length}人のランク入りプレイヤー`
   if (category === 'ffa')
-    return `総キル数・FFAティア上位${Math.min(10, players.length)}名`
+    return `総侵略数・FFAティア上位${Math.min(10, players.length)}名`
   const n = players.filter((p) => p.tiers[category]).length
   return `${n}人がティア認定済み`
 }
@@ -405,7 +405,7 @@ function FfaList({ query }: { query: string }) {
           aria-pressed={metric === 'kills'}
           onClick={() => setMetric('kills')}
         >
-          総キル数
+          総侵略数
         </button>
         <button
           type="button"
