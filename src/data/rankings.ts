@@ -1,10 +1,13 @@
 /**
  * Ranking fixtures.
  *
- * All ranking data shown on the site comes from this module. The data is
- * generated deterministically from a fixed seed so every render (SSR and
- * client) matches. A later milestone replaces `getRankings()` with a real
- * data source (Netlify Database fed by the game server).
+ * All ranking data shown on the site comes from this module.
+ * 現在は手書きの固定データです。後で `getRankings()` を
+ * 実データ（Netlify Database など）に差し替えます。
+ *
+ * ffa.level は FFAティア（1〜10）。1=LT5, 9=LT1, 10=HT1。
+ * ffa.kills は表示用で、ティアには影響しません。
+ * mace などティアが無いモードは、キーごと書かなければ「なし」になります。
  */
 
 export const SITE = {
@@ -14,27 +17,15 @@ export const SITE = {
   discordUrl: 'https://discord.com',
 } as const
 
-export type ModeId =
-  | 'sword'
-  | 'axe'
-  | 'mace'
-  | 'netherite'
-  | 'uhc'
-  | 'pot'
-  | 'smp'
-  | 'crystal'
-  | 'spear'
+export type ModeId = 'sword' | 'mace' | 'netherite' | 'pot' | 'crystal' | 'spear'
 
 export type Mode = { id: ModeId; name: string; jp: string }
 
 export const MODES: Mode[] = [
   { id: 'sword', name: 'Sword', jp: '剣' },
-  { id: 'axe', name: 'Axe', jp: '斧' },
   { id: 'mace', name: 'Mace', jp: 'メイス' },
-  { id: 'netherite', name: 'Neth OP', jp: 'ネザライト' },
-  { id: 'uhc', name: 'UHC', jp: 'UHC' },
+  { id: 'netherite', name: 'Neth Pot', jp: 'ネザライト' },
   { id: 'pot', name: 'Pot', jp: 'ポーション' },
-  { id: 'smp', name: 'SMP', jp: 'SMP' },
   { id: 'crystal', name: 'Crystal', jp: 'クリスタル' },
   { id: 'spear', name: 'Spear', jp: 'スピア' },
 ]
@@ -76,11 +67,15 @@ export type ModeResult = {
 
 export type Player = {
   name: string
-  region: 'JP' | 'KR' | 'TW' | 'AS'
+  region: 'JP'
+  /** 総合ティア（手動指定） */
+  overall: TierCode
+  /** 各モードのティアから計算したポイント */
   points: number
   matches: number
   tiers: Partial<Record<ModeId, ModeResult>>
-  ffa: { kills: number; bestStreak: number }
+  /** kills: 総キル数（表示用） / level: FFAティア（1〜10、10が最高） */
+  ffa: { kills: number; level: number }
 }
 
 export function tierLevel(tier: TierCode): number {
@@ -100,144 +95,170 @@ export function rankTitle(points: number): string {
   return 'Rookie'
 }
 
-/** FFA tier is derived from total kills. */
-export function ffaTier(kills: number): TierCode {
-  const steps: [number, TierCode][] = [
-    [4000, 'HT1'],
-    [3000, 'LT1'],
-    [2200, 'HT2'],
-    [1600, 'LT2'],
-    [1100, 'HT3'],
-    [700, 'LT3'],
-    [400, 'HT4'],
-    [200, 'LT4'],
-    [80, 'HT5'],
-  ]
-  return steps.find(([min]) => kills >= min)?.[1] ?? 'LT5'
+export const FFA_LEVEL_MIN = 1
+export const FFA_LEVEL_MAX = 10
+
+/** FFAティア数値(1〜10) → ティア。1=LT5 … 9=LT1, 10=HT1 */
+export function ffaTier(level: number): TierCode {
+  const n = Math.min(FFA_LEVEL_MAX, Math.max(FFA_LEVEL_MIN, Math.round(level)))
+  return TIER_CODES[TIER_CODES.length - n] ?? 'LT5'
 }
 
-const NAMES = [
-  'Kurogane_',
-  'yuzuSlash',
-  'TofuStrike',
-  'nekoKnight',
-  'Hayate0817',
-  'mochiCrit',
-  'Raijin_PvP',
-  'sakuraW_tap',
-  'ShiroKuma',
-  'kitsune2k',
-  'GinTsuki',
-  'umeBoshi',
-  'Akatsuki_XO',
-  'tanukiTime',
-  'KazeNoKo',
-  'ramenRush',
-  'Tsubasa_v',
-  'mikanStrafe',
-  'KoiFishy',
-  'Inazuma',
-  'daifukuPot',
-  'senpaiCombo',
-  'Hotaru_mc',
-  'oniGiriGG',
-  'YamaArashi',
-  'sushiBlock',
-  'KageMaru',
-  'matchaJitter',
-  'Ryusei',
-  'udonUHC',
-  'HibikiTap',
-  'kaminariOP',
-  'Sora_Crit',
-  'warabiMochi',
-  'TenguBlade',
-  'kuroNeko_jp',
-  'MizuReach',
-  'dangoDuel',
-  'Haru_spear',
-  'IceKirin',
-  'natsuMace',
-  'yokaiPearl',
-  'Shizuku_',
-  'TakoStrafe',
-  'Ren_crystal',
-  'momijiWave',
-  'Fubuki_x',
-  'enokiSMP',
-  'Tatsuya_',
-  'kibouAxe',
-  'Nagi_0',
-  'hanabiCrit',
-  'SengokuPvP',
-  'aoiRod',
-  'Kaito_tap',
-  'yurei_mc',
-  'Mitsuki',
-  'kareeRice',
-  'ShinobiS',
-  'takoyakiOP',
+/** 勝敗が無い場合は NaN にせず null を返す */
+export function winRate(r: ModeResult): number | null {
+  const total = r.wins + r.losses
+  return total === 0 ? null : r.wins / total
+}
+
+/** 勝敗データがまだ無いので 0 で埋めるヘルパー */
+const t = (tier: TierCode): ModeResult => ({ tier, wins: 0, losses: 0 })
+
+type PlayerInput = Omit<Player, 'points' | 'matches'>
+
+const PLAYER_INPUTS: PlayerInput[] = [
+  {
+    name: 'SwettyMC',
+    region: 'JP',
+    overall: 'LT1',
+    tiers: {
+      sword: t('HT1'),
+      netherite: t('LT2'),
+      pot: t('HT3'),
+      crystal: t('HT3'),
+      spear: t('LT3'),
+    },
+    ffa: { kills: 850, level: 9 }, // LT1
+  },
+  {
+    name: 'eagz2035',
+    region: 'JP',
+    overall: 'LT1',
+    tiers: {
+      sword: t('LT2'),
+      netherite: t('LT1'),
+      pot: t('LT1'),
+      crystal: t('HT1'),
+    },
+    ffa: { kills: 1100, level: 10 }, // HT1
+  },
+  {
+    name: 'menmen110',
+    region: 'JP',
+    overall: 'HT2',
+    tiers: {
+      sword: t('HT1'),
+      mace: t('LT2'),
+      netherite: t('HT1'),
+      pot: t('HT2'),
+      crystal: t('LT2'),
+      spear: t('LT2'),
+    },
+    ffa: { kills: 820, level: 9 }, // LT1
+  },
+  {
+    name: 'Hruka657',
+    region: 'JP',
+    overall: 'HT4',
+    tiers: {
+      sword: t('HT4'),
+      netherite: t('HT4'),
+      pot: t('LT4'),
+    },
+    ffa: { kills: 320, level: 5 }, // LT3
+  },
+  {
+    name: 'yvvulo', // ※ティア表では「Namq4」と書かれていた人
+    region: 'JP',
+    overall: 'LT1',
+    tiers: {
+      sword: t('HT1'),
+      mace: t('HT1'),
+      netherite: t('LT1'),
+      pot: t('HT1'),
+    },
+    ffa: { kills: 650, level: 8 }, // HT2
+  },
+  {
+    name: 'Yonegon7',
+    region: 'JP',
+    overall: 'HT3',
+    tiers: {
+      sword: t('LT3'),
+      mace: t('HT1'),
+      netherite: t('HT3'),
+      pot: t('LT3'),
+      crystal: t('LT1'),
+      spear: t('LT2'),
+    },
+    ffa: { kills: 520, level: 7 }, // LT2
+  },
+  {
+    name: 'Tempest5656',
+    region: 'JP',
+    overall: 'LT2',
+    tiers: {
+      sword: t('LT1'),
+      netherite: t('LT2'),
+      pot: t('HT3'),
+      crystal: t('HT3'),
+    },
+    ffa: { kills: 540, level: 7 }, // LT2
+  },
+  {
+    name: 'levelJP5087',
+    region: 'JP',
+    overall: 'HT4',
+    tiers: {
+      sword: t('LT4'),
+      netherite: t('HT4'),
+      pot: t('HT4'),
+      spear: t('LT3'),
+    },
+    ffa: { kills: 230, level: 4 }, // HT4
+  },
+  {
+    name: 'Bid Side7778',
+    region: 'JP',
+    overall: 'LT3',
+    tiers: {
+      sword: t('LT3'),
+      netherite: t('HT4'),
+      pot: t('LT4'),
+      spear: t('LT4'),
+    },
+    ffa: { kills: 210, level: 4 }, // HT4
+  },
+  // ティア情報がまだ無いので保留。データが決まったら追加してください。
+  // { name: 'LEMONZZKIRBY', region: 'JP', overall: 'LT5', tiers: {}, ffa: { kills: 0, level: 1 } },
 ]
 
-const REGIONS: Player['region'][] = ['JP', 'JP', 'JP', 'JP', 'KR', 'TW', 'AS']
-
-function mulberry32(seed: number) {
-  let a = seed
-  return () => {
-    a |= 0
-    a = (a + 0x6d2b79f5) | 0
-    let t = Math.imul(a ^ (a >>> 15), 1 | a)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-
 function buildPlayers(): Player[] {
-  const rand = mulberry32(20261118)
-  const players = NAMES.map((name, index) => {
-    // Earlier names skew stronger so the leaderboard has a clear top.
-    const skill = Math.max(0, 1 - index / NAMES.length + (rand() - 0.5) * 0.35)
-    const tiers: Player['tiers'] = {}
-    let matches = 0
-    for (const mode of MODES) {
-      if (rand() > 0.35 + skill * 0.6) continue
-      const roll = Math.min(0.999, Math.max(0, (1 - skill) * 0.85 + rand() * 0.45))
-      const tier = TIER_CODES[Math.floor(roll * TIER_CODES.length)]
-      const wins = Math.round(8 + rand() * 120 * (skill + 0.2))
-      const losses = Math.round(1 + rand() * 30 * (1.2 - skill))
-      matches += wins + losses
-      tiers[mode.id] = { tier, wins, losses }
-    }
-    const points = Object.values(tiers).reduce(
-      (sum, r) => sum + TIER_POINTS[r.tier],
-      0,
+  return PLAYER_INPUTS.map((p) => {
+    const results = Object.values(p.tiers).filter(
+      (r): r is ModeResult => r !== undefined,
     )
-    const kills = Math.round(30 + rand() * 4600 * (skill * skill + 0.05))
     return {
-      name,
-      region: REGIONS[Math.floor(rand() * REGIONS.length)],
-      points,
-      matches,
-      tiers,
-      ffa: {
-        kills,
-        bestStreak: Math.max(3, Math.round(kills / (40 + rand() * 120))),
-      },
-    } satisfies Player
-  })
-  return players
-    .filter((p) => p.points > 0)
-    .sort((a, b) => b.points - a.points || b.matches - a.matches)
+      ...p,
+      points: results.reduce((sum, r) => sum + TIER_POINTS[r.tier], 0),
+      matches: results.reduce((sum, r) => sum + r.wins + r.losses, 0),
+    }
+  }).sort(
+    (a, b) =>
+      TIER_CODES.indexOf(a.overall) - TIER_CODES.indexOf(b.overall) ||
+      b.points - a.points ||
+      a.name.localeCompare(b.name),
+  )
 }
 
-const PLAYERS = buildPlayers()
+const PLAYERS: readonly Player[] = buildPlayers()
 
-export function getRankings(): Player[] {
+export function getRankings(): readonly Player[] {
   return PLAYERS
 }
 
 export function getPlayer(name: string): Player | undefined {
-  return PLAYERS.find((p) => p.name === name)
+  const key = name.toLowerCase()
+  return PLAYERS.find((p) => p.name.toLowerCase() === key)
 }
 
 export function getMode(id: string): Mode | undefined {
