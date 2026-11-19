@@ -122,7 +122,7 @@ const PLAYER_INPUTS: PlayerInput[] = [
     overall: 'LT1',
     tiers: {
       sword: t('HT1'),
-      netherite: t('LT2'),
+      netherite: t('HT2'),
       pot: t('HT3'),
       crystal: t('HT3'),
       spear: t('LT3'),
@@ -169,7 +169,7 @@ const PLAYER_INPUTS: PlayerInput[] = [
   {
     name: 'yvvulo', // ※ティア表では「Namq4」と書かれていた人
     region: 'JP',
-    overall: 'LT1',
+    overall: 'HT1',
     tiers: {
       sword: t('HT1'),
       mace: t('HT1'),
@@ -284,7 +284,7 @@ const PLAYER_INPUTS: PlayerInput[] = [
     overall: 'LT1',
     tiers: {
       sword: t('LT1'),
-      netherite: t('HT1'),
+      netherite: t('LT1'),
       pot: t('LT1'),
     },
     ffa: { kills: 22, level: 5 }, // LT3
