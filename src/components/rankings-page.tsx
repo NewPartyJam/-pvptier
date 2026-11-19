@@ -433,7 +433,7 @@ function FfaList({ query }: { query: string }) {
                       <span className="hg-ffa-score">
                         {player.ffa.kills.toLocaleString('ja-JP')}
                       </span>
-                      <span className="hg-ffa-unit">キル</span>
+                      <span className="hg-ffa-unit">回</span>
                       <span className={`hg-ffa-tier t${tierLevel(tier)}`}>{tier}</span>
                     </>
                   ) : (
