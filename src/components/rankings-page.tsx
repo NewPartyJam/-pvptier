@@ -62,10 +62,10 @@ export function RankingsPage({ category }: { category: Category }) {
       <Modal open={infoOpen} onClose={() => setInfoOpen(false)} labelledBy="info-title">
         <h2 id="info-title">ランキングについて</h2>
         <p>
-          総合ランキングは、全Duelモードで獲得したティアポイントの合計順に並びます。各モードではHT1からLT5までのティアでプレイヤーを掲載しています。
+          総合ランキングは、総合ティアの高い順（同ティアはティアポイントの合計順）に並びます。各モードではHT1からLT5までのティアでプレイヤーを掲載しています。
         </p>
         <p>
-          FFAは総キル数またはベストキルストリークの上位10名を表示します。FFAティアは総キル数で決まります。
+          FFAは総キル数またはFFAティアの上位10名を表示します。FFAティアは1〜10の数値で指定します（1 = LT5、9 = LT1、10 = HT1）。
         </p>
         <ul className="hg-points">
           {Object.entries(TIER_POINTS).map(([tier, pts]) => (
@@ -75,9 +75,7 @@ export function RankingsPage({ category }: { category: Category }) {
             </li>
           ))}
         </ul>
-        <p className="hg-muted-note">
-          ランキングはサーバーで試合が終わるたびに自動更新されます。
-        </p>
+        <p className="hg-muted-note">現在は手動で更新している暫定データです。</p>
       </Modal>
       <Modal open={!!profile} onClose={() => setProfile(null)} labelledBy="profile-name">
         {profile && <Profile player={profile} />}
@@ -131,7 +129,13 @@ function Masthead({
         <a href="#server-ip">
           <Server /> サーバーIP
         </a>
-        <a href="#api" onClick={(e) => { e.preventDefault(); toast('公開APIは近日公開予定です') }}>
+        <a
+          href="#api"
+          onClick={(e) => {
+            e.preventDefault()
+            toast('公開APIは近日公開予定です')
+          }}
+        >
           <Code /> API
         </a>
       </nav>
@@ -205,14 +209,15 @@ function ModeTabs({ current }: { current: Category }) {
 function categoryTitle(category: Category): string {
   if (category === 'overall') return '総合 Minecraft PvP ランキング'
   if (category === 'ffa') return 'FFA ランキング'
-  const mode = getMode(category)!
-  return `${mode.name} ティアリスト`
+  const mode = getMode(category)
+  return `${mode?.name ?? category} ティアリスト`
 }
 
 function categoryCount(category: Category): string {
   const players = getRankings()
   if (category === 'overall') return `${players.length}人のランク入りプレイヤー`
-  if (category === 'ffa') return 'キル数・ストリーク上位10名'
+  if (category === 'ffa')
+    return `総キル数・FFAティア上位${Math.min(10, players.length)}名`
   const n = players.filter((p) => p.tiers[category]).length
   return `${n}人がティア認定済み`
 }
@@ -250,7 +255,12 @@ function BoardTitle({
           </span>
           <div className="hg-server-copy">
             <span className="hg-server-label">Server IP</span>
-            <button className="hg-server" type="button" onClick={copy} aria-label="サーバーアドレスをコピー">
+            <button
+              className="hg-server"
+              type="button"
+              onClick={copy}
+              aria-label="サーバーアドレスをコピー"
+            >
               <span>{SITE.serverIp}</span>
               <Copy />
             </button>
@@ -313,7 +323,7 @@ function OverallList({
             <span className="hg-player-note">
               <Medal />
               <span>
-                {rankTitle(player.points)}（{player.points} pt）
+                総合 {player.overall} · {rankTitle(player.points)}（{player.points} pt）
               </span>
             </span>
           </span>
@@ -372,11 +382,15 @@ function Notice({ query }: { query: string }) {
 /* ───────────────────────── FFA ───────────────────────── */
 
 function FfaList({ query }: { query: string }) {
-  const [metric, setMetric] = useState<'kills' | 'bestStreak'>('kills')
+  const [metric, setMetric] = useState<'kills' | 'level'>('kills')
   const top = useMemo(
     () =>
       [...getRankings()]
-        .sort((a, b) => b.ffa[metric] - a.ffa[metric])
+        .sort((a, b) =>
+          metric === 'kills'
+            ? b.ffa.kills - a.ffa.kills || b.ffa.level - a.ffa.level
+            : b.ffa.level - a.ffa.level || b.ffa.kills - a.ffa.kills,
+        )
         .slice(0, 10)
         .map((player, i) => ({ player, rank: i + 1 })),
     [metric],
@@ -386,15 +400,19 @@ function FfaList({ query }: { query: string }) {
   return (
     <>
       <div className="hg-ffa-metrics" role="group" aria-label="FFAランキング指標">
-        <button type="button" aria-pressed={metric === 'kills'} onClick={() => setMetric('kills')}>
+        <button
+          type="button"
+          aria-pressed={metric === 'kills'}
+          onClick={() => setMetric('kills')}
+        >
           総キル数
         </button>
         <button
           type="button"
-          aria-pressed={metric === 'bestStreak'}
-          onClick={() => setMetric('bestStreak')}
+          aria-pressed={metric === 'level'}
+          onClick={() => setMetric('level')}
         >
-          ベストストリーク
+          FFAティア
         </button>
       </div>
       {filtered.length === 0 ? (
@@ -402,7 +420,7 @@ function FfaList({ query }: { query: string }) {
       ) : (
         <div className="hg-results-enter" key={metric}>
           {filtered.map(({ player, rank }) => {
-            const tier = ffaTier(player.ffa.kills)
+            const tier = ffaTier(player.ffa.level)
             return (
               <div key={player.name} className="hg-rank-row hg-ffa-entry">
                 <Podium rank={rank} name={player.name} />
@@ -410,13 +428,20 @@ function FfaList({ query }: { query: string }) {
                   <span className="hg-player-name">{player.name}</span>
                 </span>
                 <span className="hg-chips hg-ffa-values">
-                  <span className="hg-ffa-score">
-                    {player.ffa[metric].toLocaleString('ja-JP')}
-                  </span>
-                  <span className="hg-ffa-unit">
-                    {metric === 'kills' ? 'キル' : 'ストリーク'}
-                  </span>
-                  <span className={`hg-ffa-tier t${tierLevel(tier)}`}>{tier}</span>
+                  {metric === 'kills' ? (
+                    <>
+                      <span className="hg-ffa-score">
+                        {player.ffa.kills.toLocaleString('ja-JP')}
+                      </span>
+                      <span className="hg-ffa-unit">キル</span>
+                      <span className={`hg-ffa-tier t${tierLevel(tier)}`}>{tier}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="hg-ffa-score">{tier}</span>
+                      <span className="hg-ffa-unit">FFAティア {player.ffa.level}/10</span>
+                    </>
+                  )}
                 </span>
               </div>
             )
@@ -448,7 +473,8 @@ function TierGrid({
           const tb = b.tiers[mode]!
           return (
             Number(isHigh(tb.tier)) - Number(isHigh(ta.tier)) ||
-            tb.wins - tb.losses - (ta.wins - ta.losses)
+            tb.wins - tb.losses - (ta.wins - ta.losses) ||
+            a.name.localeCompare(b.name)
           )
         }),
     )
@@ -496,7 +522,7 @@ function TierGrid({
 
 function Profile({ player }: { player: Player }) {
   const rank = getRankings().indexOf(player) + 1
-  const ffa = ffaTier(player.ffa.kills)
+  const ffa = ffaTier(player.ffa.level)
   return (
     <>
       <div className="hg-profile-top">
@@ -504,11 +530,14 @@ function Profile({ player }: { player: Player }) {
         <div>
           <h2 id="profile-name">{player.name}</h2>
           <p className="hg-profile-sub">
-            <Medal /> {rankTitle(player.points)} · 総合 #{rank} · {player.points} pt
+            <Medal /> 総合 {player.overall} · {rankTitle(player.points)} · #{rank} ·{' '}
+            {player.points} pt
           </p>
           <p className="hg-profile-sub">
-            地域 {player.region} · {player.matches.toLocaleString('ja-JP')} 試合 · FFA{' '}
-            {player.ffa.kills.toLocaleString('ja-JP')} キル（{ffa}）
+            地域 {player.region}
+            {player.matches > 0 &&
+              ` · ${player.matches.toLocaleString('ja-JP')} 試合`}{' '}
+            · FFA {player.ffa.kills.toLocaleString('ja-JP')} キル（{ffa}）
           </p>
         </div>
       </div>
@@ -522,7 +551,7 @@ function Profile({ player }: { player: Player }) {
                 {mode.name}
               </span>
               <span className="hg-profile-record">
-                {r ? `${r.wins}勝 ${r.losses}敗` : '未認定'}
+                {!r ? '未認定' : r.wins + r.losses > 0 ? `${r.wins}勝 ${r.losses}敗` : '戦績なし'}
               </span>
               <span className={`hg-ffa-tier ${r ? `t${tierLevel(r.tier)}` : ''}`}>
                 {r ? r.tier : '—'}
@@ -592,14 +621,22 @@ function SiteFooter() {
       <nav aria-label="ランキング">
         <strong>ランキング</strong>
         <Link to="/">総合</Link>
-        <Link to="/rankings/$mode" params={{ mode: 'ffa' }}>FFA</Link>
-        <Link to="/rankings/$mode" params={{ mode: 'sword' }}>Sword</Link>
-        <Link to="/rankings/$mode" params={{ mode: 'crystal' }}>Crystal</Link>
+        <Link to="/rankings/$mode" params={{ mode: 'ffa' }}>
+          FFA
+        </Link>
+        <Link to="/rankings/$mode" params={{ mode: 'sword' }}>
+          Sword
+        </Link>
+        <Link to="/rankings/$mode" params={{ mode: 'crystal' }}>
+          Crystal
+        </Link>
       </nav>
       <nav aria-label="その他">
         <strong>その他</strong>
         <a href="#server-ip">サーバーIP</a>
-        <a href={SITE.discordUrl} target="_blank" rel="noreferrer">Discord</a>
+        <a href={SITE.discordUrl} target="_blank" rel="noreferrer">
+          Discord
+        </a>
         <a href="#rankings">ランキングAPI（準備中）</a>
       </nav>
       <p className="hg-unofficial">
